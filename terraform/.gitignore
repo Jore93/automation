@@ -1,0 +1,11 @@
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+*.tfplan
+*.terraform.lock.hcl
+*.log
+proxmox.pem
+proxmox.token
+.DS_Store
+*~
