@@ -8,4 +8,5 @@ terraform.tfvars
 proxmox.pem
 proxmox.token
 .DS_Store
+.vscode
 *~
