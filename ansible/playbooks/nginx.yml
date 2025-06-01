@@ -1,0 +1,11 @@
+---
+- name: Initialise machine
+  hosts: nginx
+  become: true
+  tasks:
+    - name: Ensure all necessary packages are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      when: ansible_os_family == "Debian"
+      loop: ["curl", "nginx"]

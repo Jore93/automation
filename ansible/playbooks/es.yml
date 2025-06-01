@@ -1,0 +1,49 @@
+---
+- name: Initialise machine
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure all necessary packages are installed
+      apt:
+        name: {{ item }}
+        state: present
+      when: ansible_os_family == "Debian"
+      loop: ["curl", "pvscan"]
+
+- name: Expand LVM to use full new disk space
+  hosts: all
+  become: true
+  tasks:
+    - name: Scan for new physical volumes
+      command: pvscan
+
+    - name: Extend the volume group with the new disk
+      command: vgextend debian--vg-root /dev/sda5
+      args:
+        creates: /dev/my_vg
+
+    - name: Expand the logical volume
+      command: lvextend -l +100%FREE /dev/my_vg/my_lv
+
+    - name: Resize the filesystem (for ext4)
+      command: resize2fs /dev/my_vg/my_lv
+      when: ansible_facts['filesystem']['/dev/my_vg/my_lv']['type'] == "ext4"
+
+- name: Check if user exists and create if not
+  hosts: localhost
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Check if user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "example_user"
+      register: user_check
+
+    - name: Create user if not exists
+      ansible.builtin.user:
+        name: "example_user"
+        state: present
+      when: user_check.ansible_facts.getent_passwd is not defined
+
+
