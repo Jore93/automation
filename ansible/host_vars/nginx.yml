@@ -1,1 +1,0 @@
-sudo_password: "{{ vault_ansible_sudo_pw }}"

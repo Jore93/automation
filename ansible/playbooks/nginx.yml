@@ -2,6 +2,8 @@
 - name: Initialise machine
   hosts: nginx
   become: true
+  vars:
+    become_pass: "{{ ansible_sudo_pw }}"
   tasks:
     - name: Ensure all necessary packages are installed
       apt:
