@@ -3,11 +3,10 @@
   hosts: nginx
   become: true
   vars:
-    become_pass: "{{ ansible_sudo_pw }}"
+    become_pass: "{{ ansible_become_pass }}"
   tasks:
     - name: Ensure all necessary packages are installed
       apt:
         name: "{{ item }}"
         state: present
-      when: ansible_os_family == "Debian"
       loop: ["curl", "nginx"]
