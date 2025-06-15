@@ -4,7 +4,9 @@ server {
     location /.well-known/acme-challenge/ {
         root {{ web_root }};
     }
-    return 301 https://$host$request_uri;
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 {% for site in nginx_sites %}
@@ -12,13 +14,30 @@ server {
     listen 443 ssl;
     server_name {{ site.domain }};
 
+    # Use only strong ciphers and TLS protocols
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "HIGH:EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH:!aNULL:!MD5:!RC4";
+
+    # OCSP stapling reduces the load on certificate authorities and improves performance. 
+    #ssl_stapling on;
+    #ssl_stapling_verify on;
+
     ssl_certificate     /etc/letsencrypt/live/{{ site.domain }}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/{{ site.domain }}/privkey.pem;
 
+    # Disable unsafe HTTP methods such as TRACE and DELETE
+    #if ($request_method !~ ^(GET|HEAD|POST)$ ) {
+    #    return 405;
+    #}
+
     location / {
         proxy_pass {{ site.backend }};
+        proxy_redirect http:// https://;
+        proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $server_addr;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 {% endfor %}

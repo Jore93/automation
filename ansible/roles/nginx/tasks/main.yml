@@ -4,7 +4,7 @@
     name: "{{ item }}"
     state: present
     update_cache: true
-  loop: ["curl", "nginx", "iptables", "certbot", "python3-certbot-nginx"]
+  loop: ["nginx", "certbot", "python3-certbot-nginx"]
 
 - name: Ensure Nginx is running
   ansible.builtin.service:
@@ -23,7 +23,7 @@
 - name: Obtain SSL certificates from Let's Encrypt
   ansible.builtin.command: >
     certbot certonly --webroot -w {{ web_root }} --non-interactive --agree-tos
-    --email {{ letsencrypt_admin_email }}
+    --email {{ letsencrypt_admin_email }} --staple-ocsp
     -d {{ item.domain }}
   args:
     creates: /etc/letsencrypt/live/{{ item.domain }}/fullchain.pem
@@ -46,4 +46,6 @@
 
 - name: Test dry-run of certificate renewal
   ansible.builtin.command: certbot renew --dry-run
+  register: dryrun_output
+  changed_when: dryrun_output.rc != 0
   tags: ['certbot']

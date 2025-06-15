@@ -1,16 +1,63 @@
 ---
-# tasks file for iptables
+- name: Ensure all necessary packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: ["iptables", "netfilter-persistent"]
+
 - name: Allow all traffic
   ansible.builtin.iptables:
-    chain: INPUT
+    chain: "{{ item }}"
     policy: ACCEPT
+  loop: ["INPUT", "OUTPUT", "FORWARD"]
 
-- name: Allow all traffic for OUTPUT
+- name: Flush all rules
+  ansible.builtin.iptables:
+    chain: "{{ item }}"
+    flush: true
+  loop: ["INPUT", "OUTPUT", "FORWARD"]
+
+- name: Allow established and related connections
+  ansible.builtin.iptables:
+    chain: "{{ item }}"
+    protocol: all
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+  loop: ["INPUT", "OUTPUT"]
+
+- name: Set INPUT rules
+  ansible.builtin.iptables:
+    chain: INPUT
+    source: "{{ item.source }}"
+    protocol: "{{ item.protocol }}"
+    destination_port: "{{ item.port }}"
+    comment: "{{ item.comment }}"
+    jump: ACCEPT
+  loop: "{{ fw_input }}"
+
+- name: Set OUTPUT rules
   ansible.builtin.iptables:
     chain: OUTPUT
-    policy: ACCEPT
+    protocol: "{{ item.protocol }}"
+    destination_port: "{{ item.port }}"
+    comment: "{{ item.comment }}"
+    jump: ACCEPT
+  loop: "{{ fw_output }}"
 
-- name: Allow all traffic for FORWARD
+- name: Set FORWARD rules
   ansible.builtin.iptables:
     chain: FORWARD
-    policy: ACCEPT
+    protocol: "{{ item.protocol }}"
+    destination_port: "{{ item.port }}"
+    comment: "{{ item.comment }}"
+    jump: ACCEPT
+  loop: "{{ fw_forward }}"
+
+- name: Deny all traffic
+  ansible.builtin.iptables:
+    chain: "{{ item }}"
+    policy: DROP
+    jump: LOG
+  loop: ["INPUT", "OUTPUT", "FORWARD"]
+  notify: Save iptables rules

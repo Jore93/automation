@@ -4,21 +4,25 @@
   become: true
   roles:
   - nginx
+  tags: ["nginx"]
 
 - name: Configure SSH
   hosts: nginx
   become: true
   roles:
   - ssh_config
+  tags: ["ssh"]
 
 - name: Configure iptables
   hosts: nginx
   become: true
   roles:
   - iptables
+  tags: ["iptables"]
 
 - name: Harden the OS
   hosts: nginx
   become: true
   roles:
   - os-hardening
+  tags: ["os-hardening"]

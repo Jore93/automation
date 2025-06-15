@@ -1,0 +1,14 @@
+gateway: "10.0.0.1"
+
+fw_input:
+  - {port: 22, protocol: tcp, source: "{{ mgmt_ip }}", comment: "Allow SSH from management machine"}
+  - {port: 80, protocol: tcp, source: "0.0.0.0/0", comment: "Allow incoming HTTP requests to be proxied"}
+  - {port: 443, protocol: tcp, source: "0.0.0.0/0", comment: "Allow outcoming HTTPS requests to be proxied"}
+
+fw_output:
+  - {port: 53, protocol: udp, destination: "{{ gateway }}", comment: "Allow DNS queries"}
+  - {port: 80, protocol: tcp, destination: "0.0.0.0/0", comment: "Allow outgoing HTTP requests to allow updates"}
+  - {port: 443, protocol: tcp, destination: "0.0.0.0/0", comment: "Allow outgoing HTTPS requests to allow updates"}
+  - {port: 8123, protocol: tcp, destination: 192.168.20.254, comment: Allow proxy connection to HASS}
+
+fw_forward: []

@@ -1,2 +1,8 @@
 ---
 # defaults file for iptables
+fw_input:
+  - {port: 22, protocol: tcp, source: "{{ mgmt_ip }}", comment: "Allow SSH from management machine"}
+
+fw_output: []
+
+fw_forward: []

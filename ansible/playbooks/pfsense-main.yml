@@ -1,0 +1,16 @@
+---
+- name: Setup pfSense
+  hosts: pfsense
+  become: true
+  roles:
+  # - role: pfSense
+  #   tags: interfaces
+
+  # - role: pfSense
+  #   tags: aliases
+
+  # - role: pfSense
+  #   tags: fw_rules
+
+  # - role: pfSense
+  #   tags: dhcp

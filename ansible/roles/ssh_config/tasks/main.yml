@@ -1,16 +1,50 @@
 ---
+- name: Ensure all necessary packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: ["openssh-server"]
+
 - name: Add Match rule to sshd_config
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    line: "Match Address 10.0.100.2"
-    create: yes
+    line: "Match Address {{ mgmt_ip }}"
+    create: true
     state: present
+    mode: '0644'
 
 - name: Allow only specific user from that IP
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     line: "  AllowUsers ansible"
-    insertafter: "Match Address 10.0.100.2"
+    insertafter: "Match Address {{ mgmt_ip }}"
+
+- name: Set hosts.allow file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts.allow
+    line: "sshd: {{ mgmt_ip }}"
+    state: present
+
+- name: Set hosts.deny file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts.deny
+    line: "sshd: ALL"
+    state: present
+
+- name: Ensure password authentication is disabled
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    state: present
+
+- name: Ensure public key authentication is enabled
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^PubkeyAuthentication"
+    line: "PubkeyAuthentication yes"
+    state: present
 
 - name: Ensure SSH is running
   ansible.builtin.service:
