@@ -1,0 +1,9 @@
+---
+nginx_sites:
+  - domain: ha.hannajajore.fi
+    backend: http://192.168.20.254:8123
+  # - domain: soc.hannajajore.fi
+  #   backend: https://10.0.100.4
+
+letsencrypt_admin_email: "{{ vault_letsencrypt_admin_email }}"
+web_root: /var/www/html

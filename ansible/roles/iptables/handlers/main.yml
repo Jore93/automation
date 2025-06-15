@@ -1,0 +1,4 @@
+---
+# handlers file for iptables
+- name: Save iptables rules
+  ansible.builtin.command: netfilter-persistent save

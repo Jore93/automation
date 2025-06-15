@@ -1,0 +1,24 @@
+server {
+    listen 80;
+
+    location /.well-known/acme-challenge/ {
+        root {{ web_root }};
+    }
+    return 301 https://$host$request_uri;
+}
+
+{% for site in nginx_sites %}
+server {
+    listen 443 ssl;
+    server_name {{ site.domain }};
+
+    ssl_certificate     /etc/letsencrypt/live/{{ site.domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ site.domain }}/privkey.pem;
+
+    location / {
+        proxy_pass {{ site.backend }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+{% endfor %}

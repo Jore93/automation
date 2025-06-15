@@ -1,0 +1,17 @@
+---
+# tasks file for pfSense
+- name: Configure pfSense aliases
+  ansible.builtin.import_tasks: aliases.yml
+  when: setup_aliases
+
+- name: Configure pfSense DHCP server
+  ansible.builtin.import_tasks: dhcp.yml
+  when: setup_dhcp
+
+- name: Configure pfSense firewall rules
+  ansible.builtin.import_tasks: fw_rules.yml
+  when: setup_pfsense_fw_rules
+
+- name: Configure pfSense interfaces
+  ansible.builtin.import_tasks: interfaces.yml
+  when: setup_interfaces

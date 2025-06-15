@@ -1,0 +1,49 @@
+---
+- name: Ensure all necessary packages are installed
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop: ["curl", "nginx", "iptables", "certbot", "python3-certbot-nginx"]
+
+- name: Ensure Nginx is running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+  notify: Restart nginx
+
+- name: Deploy Nginx site config
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/reverse_proxy.conf
+    mode: '0644'
+  notify: Restart nginx
+
+- name: Obtain SSL certificates from Let's Encrypt
+  ansible.builtin.command: >
+    certbot certonly --webroot -w {{ web_root }} --non-interactive --agree-tos
+    --email {{ letsencrypt_admin_email }}
+    -d {{ item.domain }}
+  args:
+    creates: /etc/letsencrypt/live/{{ item.domain }}/fullchain.pem
+  loop: "{{ nginx_sites }}"
+  tags: ['certbot']
+
+- name: Create deploy hook directory if not exists
+  ansible.builtin.file:
+    path: /etc/letsencrypt/renewal-hooks/deploy
+    state: directory
+    mode: '0755'
+  tags: ['certbot']
+
+- name: Add NGINX reload hook after certificate renewal
+  ansible.builtin.copy:
+    src: reload-nginx.sh
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    mode: '0755'
+  tags: ['certbot']
+
+- name: Test dry-run of certificate renewal
+  ansible.builtin.command: certbot renew --dry-run
+  tags: ['certbot']

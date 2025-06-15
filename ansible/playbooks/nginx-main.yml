@@ -1,12 +1,24 @@
 ---
-- name: Initialise machine
+- name: Install nginx server
   hosts: nginx
   become: true
-  vars:
-    become_pass: "{{ ansible_become_pass }}"
-  tasks:
-    - name: Ensure all necessary packages are installed
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop: ["curl", "nginx"]
+  roles:
+  - nginx
+
+- name: Configure SSH
+  hosts: nginx
+  become: true
+  roles:
+  - ssh_config
+
+- name: Configure iptables
+  hosts: nginx
+  become: true
+  roles:
+  - iptables
+
+- name: Harden the OS
+  hosts: nginx
+  become: true
+  roles:
+  - os-hardening

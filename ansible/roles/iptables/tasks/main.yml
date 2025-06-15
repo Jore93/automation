@@ -1,0 +1,16 @@
+---
+# tasks file for iptables
+- name: Allow all traffic
+  ansible.builtin.iptables:
+    chain: INPUT
+    policy: ACCEPT
+
+- name: Allow all traffic for OUTPUT
+  ansible.builtin.iptables:
+    chain: OUTPUT
+    policy: ACCEPT
+
+- name: Allow all traffic for FORWARD
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT
